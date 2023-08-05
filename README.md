@@ -1,7 +1,7 @@
 # ETH_AVAX
 # TYPES OF FUNCTIONS
 
-In this code we are writing a smart contract for Class Representive Voting.
+In this code we are writing a smart contract for Social Rewards points.
 ## Description
 
 In this contract, we create our own token and use different functions such as mint fucntion which can be used by the owner only, burn and transfer function can be used by any of the user. The contract has been tested and deployed using Remix IDE. The functionalities of the contract has been explained in this Loom video.
@@ -10,64 +10,51 @@ In this contract, we create our own token and use different functions such as mi
 
 ### Executing program
 
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    
+    contract SocialPointsSystem {
 
-contract ClassRepresentativeVoting {
     address public owner;
-    uint256 public totalCandidates;
-    uint256 public totalVoters;
-    bool public votingEnded;
+    string public contractName = "Social Points System";
 
-    struct Candidate {
-        string name;
-        uint256 voteCount;
+    mapping(address => uint256) public socialPoints;
+    mapping(address => bool) public hasVipBadge;
+
+    constructor() {
+        owner = msg.sender;
     }
-
-    mapping(uint256 => Candidate) public candidates;
-    mapping(address => bool) public voters;
-
-    event Voted(address indexed voter, uint256 indexed candidateIndex);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only the contract owner can perform this action");
+        require(msg.sender == owner, "Only the owner can perform this action");
         _;
     }
 
-    modifier notEnded() {
-        require(!votingEnded, "Voting has ended");
-        _;
+    function minting(address recipient, uint256 points) public onlyOwner {
+        require(recipient != address(0), "Invalid recipient address");
+        require(points > 0, "Points to mint must be greater than 0");
+
+        socialPoints[recipient] += points;
     }
 
-    constructor(string[] memory _candidateNames) {
-        owner = msg.sender;
-        totalCandidates = _candidateNames.length;
+    function transfer(address to, uint256 points) public {
+        require(to != address(0), "Cannot transfer to the zero address");
+        require(points > 0, "Points to transfer must be greater than 0");
+        require(socialPoints[msg.sender] >= points, "Insufficient points");
 
-        for (uint256 i = 0; i < totalCandidates; i++) {
-            candidates[i] = Candidate(_candidateNames[i], 0);
-        }
+        socialPoints[msg.sender] -= points;
+        socialPoints[to] += points;
     }
 
-    function vote(uint256 _candidateIndex) external notEnded {
-        require(_candidateIndex < totalCandidates, "Invalid candidate index");
-        require(!voters[msg.sender], "You have already voted");
+    function spending(uint256 points) public {
+        require(points > 0, "Points to spend must be greater than 0");
+        require(socialPoints[msg.sender] >= points, "Insufficient points");
 
-        candidates[_candidateIndex].voteCount++;
-        voters[msg.sender] = true;
-        totalVoters++;
-
-        emit Voted(msg.sender, _candidateIndex);
-    }
-
-    function endVoting() external onlyOwner notEnded {
-        votingEnded = true;
-    }
-
-    function getCandidateVoteCount(uint256 _candidateIndex) external view returns (uint256) {
-        require(_candidateIndex < totalCandidates, "Invalid candidate index");
-        return candidates[_candidateIndex].voteCount;
+        socialPoints[msg.sender] -= points;
+        hasVipBadge[msg.sender] = true; // Unlock VIP Badge feature
     }
 }
+
 
 
 To compile the code, press CRTL+ SHIFT+P  then select Solidity compile contract and the program is compile sucessfully will be shown in console 
