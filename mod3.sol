@@ -34,8 +34,8 @@ contract SocialPointsSystem {
         socialPoints[to] += points;
     }
 
-    function spending(uint256 points) public {
-        require(points > 0, "Points to spend must be greater than 0");
+    function spending_burning(uint256 points) public {
+        require(points > 30, "Points to spend must be greater than 0");
         require(socialPoints[msg.sender] >= points, "Insufficient points");
 
         socialPoints[msg.sender] -= points;
